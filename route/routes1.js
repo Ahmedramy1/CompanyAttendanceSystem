@@ -13,6 +13,13 @@ router
     return res.sendFile(path.join(__dirname, '..', 'view/add_employee.html'));
 })
 
+
+router
+.route('/add_emp')
+.post((req, res) => {
+    empcontroller.AddEmployee(req, res);
+})
+
 router
 .route('/')
 .get((req, res) => {
@@ -58,15 +65,23 @@ router
 router
 .route('/dashboard')
 .get((req, res) => {
-    console.log("routing to dashboard");
-    return res.sendFile(path.join(__dirname, '..', 'view/dashboard.html'));
+    if(req.session.privilege == "Employee")
+    {
+        console.log("routing to dashboard");
+        return res.sendFile(path.join(__dirname, '..', 'view/dashboard.html'));
+    }
+    res.redirect('/');
 });
 
 router
 .route('/hrdashboard')
 .get((req, res) => {
-    console.log("routing to HR dashboard");
-    return res.sendFile(path.join(__dirname, '..', 'view/hrdashboard.html'));
+    if(req.session.privilege == "HR")
+    {
+        console.log("routing to HR dashboard");
+        return res.sendFile(path.join(__dirname, '..', 'view/hrdashboard.html'));
+    }
+    res.redirect('/');
 });
 
 router
