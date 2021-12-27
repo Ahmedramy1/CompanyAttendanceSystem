@@ -47,6 +47,18 @@ isAuth = (req, res, next) => {
     }
 }
 console.log(isAuth);
+
+app.get('/register', require('./route/routes1').router);
+app.use('/', require('./route/routes1').router);
+app.use('/GenerateReports', isAuth, require('./route/routes1').router);
+app.use('/logout', require('./route/routes1').router);
+app.use('/dashboard', isAuth, require('./route/routes1').router);
+app.use('/hrdashboard', isAuth, require('./route/routes1').router);
+app.use('/rem_employee', isAuth, require('./route/routes1').router);
+app.use('/SearchEmpbyusername',require('./route/routes1').router);
+app.use('/SearchEmpbyEmail', require('./route/routes1').router);
+app.use('/add_emp', require('./route/routes1').router);
+/*
 app.get('/register', require('./route/routes').register);
 app.use('/', require('./route/routes').login);
 app.use('/GenerateReports', isAuth, require('./route/routes').hrdashboard);
@@ -57,7 +69,7 @@ app.use('/rem_employee', isAuth, require('./route/routes').hrdashboard);
 app.use('/SearchEmpbyusername',require('./route/routes').SearchEmpbyusername);
 app.use('/SearchEmpbyEmail', require('./route/routes').SearchEmpbyEmail);
 app.use('/add_emp', require('./route/routes').backend_router_addemp);
-
+*/
 
 app.listen(3000, () => {
     console.log(`Listening to port: ${process.env.CPORT}`);
