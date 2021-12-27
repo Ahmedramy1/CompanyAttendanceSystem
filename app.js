@@ -6,6 +6,7 @@ const mongoose = require("mongoose");
 const session = require("express-session");
 const MongoDBStore = require("connect-mongodb-session")(session);
 const bodyParser = require('body-parser');
+const bcrypt = require('bcryptjs');
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
@@ -48,13 +49,15 @@ isAuth = (req, res, next) => {
 console.log(isAuth);
 app.get('/register', require('./route/routes').register);
 app.use('/', require('./route/routes').login);
-app.use('/GenerateReports', require('./route/routes').GenerateReports);
+app.use('/GenerateReports', isAuth, require('./route/routes').hrdashboard);
 app.use('/logout', require('./route/routes').logout);
 app.use('/dashboard', isAuth, require('./route/routes').dashboard);
 app.use('/hrdashboard', isAuth, require('./route/routes').hrdashboard);
+app.use('/rem_employee', isAuth, require('./route/routes').hrdashboard);
 app.use('/SearchEmpbyusername',require('./route/routes').SearchEmpbyusername);
 app.use('/SearchEmpbyEmail', require('./route/routes').SearchEmpbyEmail);
 app.use('/add_emp', require('./route/routes').backend_router_addemp);
+
 
 app.listen(3000, () => {
     console.log(`Listening to port: ${process.env.CPORT}`);

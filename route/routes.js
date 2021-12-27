@@ -10,7 +10,7 @@ const register = express.Router();
 const dashboard = express.Router();
 const hrdashboard = express.Router();
 const GenerateReports = express.Router();
-login.use(express.static('./view/', {index: 'login.html'}));
+//login.use(express.static('./view/', {index: 'login.html'}));
 
 register.get('/register', (req, res) => {
     if(req.session.isAuth)
@@ -20,11 +20,25 @@ register.get('/register', (req, res) => {
 
 login.get('/', (req, res) => {
     if(req.session.isAuth)
-        return res.redirect('/dashboard');
+    {
+        console.log("authed");
+        if(req.session.privilege == "HR")
+        {return res.redirect('/hrdashboard');}
+        else
+        {return res.redirect('/dashboard');}
+    }
+    console.log("not authed");
     return res.sendFile(path.join(__dirname, '..', 'view/login.html'));
 })
 
-GenerateReports.post('/', (req, res) => {
+login.post('/', (req, res) => {
+    console.log(req.body);
+    console.log("Before Logging");
+    empcontroller.userlogin(req, res);
+});
+
+hrdashboard.post('/', (req, res) => {
+    console.log("GENERATING");
     if(req.session.isAuth && req.session.privilege == "HR")
     {
         return empcontroller.GenerateReports(req, res);
@@ -43,11 +57,7 @@ GenerateReports.post('/', (req, res) => {
     }
 });
 
-login.post('/', (req, res) => {
-    console.log(req.body);
-    console.log("Before Logging");
-    empcontroller.userlogin(req, res);
-});
+
 
 dashboard.get('/', (req, res) => {
     console.log("routing to dashboard");
@@ -58,6 +68,12 @@ hrdashboard.get('/', (req, res) => {
     console.log("routing to HR dashboard");
     return res.sendFile(path.join(__dirname, '..', 'view/hrdashboard.html'));
 });
+
+hrdashboard.get('/hrdashboard/rem_employee', (req, res) => {
+    console.log("REMOVING");
+    empcontroller.remEmp(req, res);
+    console.log("Removed Emp");
+})
 
 logout.post('/', (req, res) => {
     console.log("Logging Out...");

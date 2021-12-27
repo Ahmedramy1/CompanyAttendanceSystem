@@ -12,12 +12,12 @@ async function userlogin(req, res, next) {
         const emp = await EMP.findOne(query);
         if(!emp)
             return res.send("Email not found");
-        const match = await bcrypt.compare(emp.password.toString(), req.body.password.toString());
-        console.log(match);
-        console.log(emp.password);
-        console.log(req.body.password);
-        if(emp.password != req.body.password)
+        const match = await bcrypt.compare(req.body.password, emp.password);
+        //if(emp.password != req.body.password)
+          //  return res.send("Incorrect Password");
+        if(!match){
             return res.send("Incorrect Password");
+        }
         console.log("Logged in Successfully, directing to dashboard");
         req.session.isAuth = true;
         req.session.email = emp.email;
@@ -35,8 +35,7 @@ async function userlogin(req, res, next) {
         console.log("PRINTINGattendd");
         console.log(attend);
         req.session.attendance = attend;
-        ClockIn(req, res);    
-        
+        ClockIn(req, res); 
     }
     catch(err){
         console.log(err);
@@ -63,10 +62,10 @@ async function ClockIn(req, res, next) {
 async function AddEmployee(req, res, next) {
     try {
         const emp = new EMP(req.body);
-        console.log("pass before encrypt");
+        console.log("Password before encryption");
         console.log(req.body.password);
-        //const hashpsw = await bcrypt.hash(req.body.password, 12);
-        //emp.password = hashpsw;
+        const hashpsw = await bcrypt.hash(req.body.password, 12);
+        emp.password = hashpsw;
         await EMP.insertMany(emp);
         res.sendFile(path.join(__dirname, '..', 'view/login.html'));     
     }
@@ -77,11 +76,15 @@ async function AddEmployee(req, res, next) {
 }
 
 async function GenerateReports(req, res, next) {
-    const att = await ATTENDANCE.find();
-    console.log(att);
-    return res.send(att);
-}
 
+    const att = await ATTENDANCE.find();
+    console.log(att);    
+    return res.send(att);
+};
+
+async function rem_employee(req, res, next) {
+    await EMPLOYEE.remove({email: req.body.email})
+}
 async function SearchEmpbyusername(req, res, next) {
     try
     {
@@ -131,16 +134,19 @@ async function ClockOut(req, res, next) {
         await ATTENDANCE.updateOne(query, {$set: {clockout: req.session.attendance.clockout, 
         active: false}});
         console.log("Attendance Saved");
-        //res.send(emp);     
         strdate = req.session.attendance.clockin;
         enddate = req.session.attendance.clockout;
-        const hours = Math.abs(enddate.getHours() - strdate.getHours());
-        const minutes = Math.abs(enddate.getMinutes() - strdate.getMinutes());
-        const seconds = Math.abs(enddate.getSeconds() - strdate.getSeconds());
+        let totalseconds = (enddate - strdate) /1000 ;
+        let hours = totalseconds / 3600;
+        let minutes = (hours   - Math.floor(hours)) * 60;
+        let seconds = (minutes - Math.floor(minutes)) * 60;
+        hours = Math.floor(hours);
+        minutes = Math.floor(minutes);
+        seconds = Math.floor(seconds);
         req.session.isAuth = false;
         req.session.destroy((err) => {
             try{
-                res.send(`<h1>Total time Spent HH:MM:SS : ${hours}:${minutes}:${seconds} </h1>`);
+                res.send(`<h1>Total time Spent: ${hours} hr ${minutes} min ${seconds} sec </h1>`);
             }
             catch(err)
             {
@@ -160,6 +166,7 @@ module.exports = {
     SearchEmpbyusername : SearchEmpbyusername,
     SearchEmpbyEmail : SearchEmpbyEmail,
     ClockIn: ClockIn,
+    rem_employee: rem_employee,
     GenerateReports: GenerateReports,
     userlogout: userlogout,
     ClockOut: ClockOut,

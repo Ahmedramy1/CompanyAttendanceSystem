@@ -5,10 +5,15 @@
 
 <h2>HR Dashboard</h2>
 <ul>
-    <form action="/GenerateReports" method="post"><li><button type="submit">Generate Reports</button></li></form>
-    <li><a href="generateReports.html">Add Employee</a></li>
-    <li><a href="generateReports.html">Remove Employee</a></li>
-    <li><a href="generateReports.html">Search Employee</a></li>
+    <form action="/hrdashboard" method="post"><li><button type="submit">Generate Reports</button></li></form>
+    <form action="/register" method="get"><li><button type="submit">Add Employee</button></li></form>
+    <form action="/rem_employee" method="get"><li>
+        <input type="text" placeholder="Employee Email" name="empemail" required>
+        <button type="submit">Remove Employee</button></li>
+    </form>
+    <form action="/search_emp" method="get"><li>
+        <input type="text" placeholder="Employee Email" name="empemail" required>
+        <button type="submit">Search for Employee by Email</button></li></form>
 </ul>
 <form action="/logout" method="POST">
     <input type="submit" value="Log Out">
