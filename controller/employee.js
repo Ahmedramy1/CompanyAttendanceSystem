@@ -1,40 +1,42 @@
 const mongoose = require('mongoose');
-const {EMP, HR} = require('../model/employee.js');
-const {ATTENDANCE} = require('../model/attendance.js');
+const EMP = require('../model/employee.js');
+const ATTENDANCE = require('../model/attendance.js');
 const path = require('path');
+const bcrypt = require('bcryptjs');
 
 async function userlogin(req, res, next) {
     try
     {
         console.log("Searching");
-        let empemail = req.body.email;
-        var query = { email: empemail };
+        var query = { email: req.body.email };
         const emp = await EMP.findOne(query);
-        console.log(`Entered Email: ${empemail}\nReal    Email: ${emp.email}`);
-        console.log(`Entered Password: ${req.body.password}\nReal    Password: ${emp.password}`);
-        if(emp.password == req.body.password)
-        {
-            console.log("Logged in Successfully");
-            res.sendFile(path.join(__dirname, '..', 'view/emphomepage.html'));
-            //console.log(emp);
-            //res.json(emp);
-            let att = {
-                id: emp._id,
-                username: emp.username,
-                email: emp.email,
-                clockin: Date(),
-                clouckout: "00",
-                privilege: emp.privilege
-            };
-            const attend = new ATTENDANCE(att);
-            console.log("attendd");
-            console.log(attend);
-            ClockIn(attend);
-        }
-        else
-        {
-            res.send("Incorrect Password");
-        }
+        if(!emp)
+            return res.send("Email not found");
+        const match = await bcrypt.compare(emp.password.toString(), req.body.password.toString());
+        console.log(match);
+        console.log(emp.password);
+        console.log(req.body.password);
+        if(emp.password != req.body.password)
+            return res.send("Incorrect Password");
+        console.log("Logged in Successfully, directing to dashboard");
+        req.session.isAuth = true;
+        req.session.email = emp.email;
+        req.session.privilege = emp.privilege;
+        let att = {
+            id: emp._id,
+            username: emp.username,
+            email: emp.email,
+            clockin: Date(),
+            clockout: null,
+            privilege: emp.privilege,
+            active: true,
+        };
+        const attend = new ATTENDANCE(att);
+        console.log("PRINTINGattendd");
+        console.log(attend);
+        req.session.attendance = attend;
+        ClockIn(req, res);    
+        
     }
     catch(err){
         console.log(err);
@@ -43,10 +45,14 @@ async function userlogin(req, res, next) {
 
 async function ClockIn(req, res, next) {
     try {
-        console.log(req);
+        console.log(req.session.attendance);
         console.log("Saving Attendance");
-        await ATTENDANCE.insertMany(req);
+        await ATTENDANCE.insertMany(req.session.attendance);
         console.log("Attendance Saved");
+        console.log(req.session);
+        if(req.session.privilege == "HR")
+            return res.redirect('/hrdashboard');
+        return res.redirect('/dashboard');
         //res.send(emp);     
     }
     catch(err){
@@ -56,22 +62,24 @@ async function ClockIn(req, res, next) {
 
 async function AddEmployee(req, res, next) {
     try {
-        console.log(req.body);
         const emp = new EMP(req.body);
-        console.log("Saving");
-        if(req.body.privilege == "Employee")
-            await EMP.insertMany(emp);
-        else if(req.body.privilege == "HR")
-            await HR.insertMany(emp);
-        console.log("Saved");
-        res.sendFile(path.join(__dirname, '..', 'view/login.html'));
-        //res.send(emp);       
+        console.log("pass before encrypt");
+        console.log(req.body.password);
+        //const hashpsw = await bcrypt.hash(req.body.password, 12);
+        //emp.password = hashpsw;
+        await EMP.insertMany(emp);
+        res.sendFile(path.join(__dirname, '..', 'view/login.html'));     
     }
     catch(err){
-        console.log("ERRORRR");
         console.log(err);
-        res.send({err: err});
+        res.sendStatus(404);
     }
+}
+
+async function GenerateReports(req, res, next) {
+    const att = await ATTENDANCE.find();
+    console.log(att);
+    return res.send(att);
 }
 
 async function SearchEmpbyusername(req, res, next) {
@@ -106,37 +114,40 @@ async function SearchEmpbyEmail(req, res, next) {
     }
 }
 
-/*
-###############################################
-###############################################
-###############################################
-###############################################
-###############################################
-###############################################
-*/
 async function userlogout(req, res, next) {
     try
     {
-        console.log("ATTEND IS");
-        console.log(attend);
-        attend.ClockOut = Date();
-        console.log(attend);
-        ClockOut(attend);
+        req.session.attendance.clockout = new Date();
+        req.session.attendance.active = false;
+        ClockOut(req, res);
     }
     catch(err){
         console.log(err);
     }
 }
-
 async function ClockOut(req, res, next) {
     try {
-        console.log(req.body);
-        console.log("p1 logged out");
-        console.log(req._id);
-        await ATTENDANCE.findByIdAndDelete(req._id);
-        await ATTENDANCE.insertMany(req);
+        var query = { _id: req.session.attendance._id };
+        await ATTENDANCE.updateOne(query, {$set: {clockout: req.session.attendance.clockout, 
+        active: false}});
         console.log("Attendance Saved");
         //res.send(emp);     
+        strdate = req.session.attendance.clockin;
+        enddate = req.session.attendance.clockout;
+        const hours = Math.abs(enddate.getHours() - strdate.getHours());
+        const minutes = Math.abs(enddate.getMinutes() - strdate.getMinutes());
+        const seconds = Math.abs(enddate.getSeconds() - strdate.getSeconds());
+        req.session.isAuth = false;
+        req.session.destroy((err) => {
+            try{
+                res.send(`<h1>Total time Spent HH:MM:SS : ${hours}:${minutes}:${seconds} </h1>`);
+            }
+            catch(err)
+            {
+                res.send("LoggedOut");
+                console.log(err);
+            }
+          });
     }
     catch(err){
         console.log(err);
@@ -149,6 +160,7 @@ module.exports = {
     SearchEmpbyusername : SearchEmpbyusername,
     SearchEmpbyEmail : SearchEmpbyEmail,
     ClockIn: ClockIn,
+    GenerateReports: GenerateReports,
     userlogout: userlogout,
     ClockOut: ClockOut,
 

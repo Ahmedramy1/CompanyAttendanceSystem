@@ -27,10 +27,10 @@ const attendanceSchema = new mongoose.Schema({
     privilege: {
         type: String,
         required: true
+    },
+    active: {
+        type: Boolean,
+        required: true
     }
 });
-
-
-const ATTENDANCE = mongoose.model('ATTENDANCE', attendanceSchema, "AttendanceReport");
-
-module.exports = {ATTENDANCE};
+module.exports = (mongoose.model('ATTENDANCE', attendanceSchema, "AttendanceReport"));

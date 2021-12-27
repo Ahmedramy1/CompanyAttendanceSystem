@@ -1,15 +1,47 @@
 const express = require("express");
 const empcontroller = require("../controller/employee.js");
 const path = require('path');
-const SearchEmpbyusername  = express.Router();
+const SearchEmpbyusername = express.Router();
 const SearchEmpbyEmail  = express.Router();
 const backend_router_addemp  = express.Router();
 const login  = express.Router();
 const logout  = express.Router();
+const register = express.Router();
+const dashboard = express.Router();
+const hrdashboard = express.Router();
+const GenerateReports = express.Router();
+login.use(express.static('./view/', {index: 'login.html'}));
 
-login.get('/', () => {
-    res.sendFile(path.join(__dirname, '..', 'view/login.html'));
+register.get('/register', (req, res) => {
+    if(req.session.isAuth)
+        return res.redirect('/dashboard');
+    return res.sendFile(path.join(__dirname, '..', 'view/add_employee.html'));
 })
+
+login.get('/', (req, res) => {
+    if(req.session.isAuth)
+        return res.redirect('/dashboard');
+    return res.sendFile(path.join(__dirname, '..', 'view/login.html'));
+})
+
+GenerateReports.post('/', (req, res) => {
+    if(req.session.isAuth && req.session.privilege == "HR")
+    {
+        return empcontroller.GenerateReports(req, res);
+    }
+    else
+    {
+        req.session.destroy((err) => 
+        {
+            try{}
+            catch(err)
+            {
+                console.log(err);
+            }
+        });
+        return res.redirect('/');
+    }
+});
 
 login.post('/', (req, res) => {
     console.log(req.body);
@@ -17,7 +49,15 @@ login.post('/', (req, res) => {
     empcontroller.userlogin(req, res);
 });
 
+dashboard.get('/', (req, res) => {
+    console.log("routing to dashboard");
+    return res.sendFile(path.join(__dirname, '..', 'view/dashboard.html'));
+});
 
+hrdashboard.get('/', (req, res) => {
+    console.log("routing to HR dashboard");
+    return res.sendFile(path.join(__dirname, '..', 'view/hrdashboard.html'));
+});
 
 logout.post('/', (req, res) => {
     console.log("Logging Out...");
@@ -43,7 +83,11 @@ backend_router_addemp.post('/', (req, res) => {
 
 
 module.exports = {
+    dashboard: dashboard,
+    hrdashboard: hrdashboard,
+    register: register,
     login: login,
+    GenerateReports: GenerateReports,
     SearchEmpbyusername : SearchEmpbyusername,
     SearchEmpbyEmail : SearchEmpbyEmail,
     backend_router_addemp : backend_router_addemp,

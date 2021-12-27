@@ -1,20 +1,48 @@
 <!DOCTYPE html>
 <html>
+<head>
+    <title>Company Attendance System</title>
+<style>
+body {font-family: Arial, Helvetica, sans-serif;}
+form {border: 3px solid #f1f1f1;}
+
+input{
+  width: 20%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  display: inline-block;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+button {
+  background-color: #4b5e94;
+  color: white;
+  padding: 14px 20px;
+  margin: 8px 0;
+  border: none;
+  cursor: pointer;
+  width: 10%;
+}
+
+</style>
+</head>
 <body>
 
-<h2>Log in</h2>
+<h2>Login</h2>
 
-<form action="/" method="POST">
-    <label for="email">Email:</label><br>
-    <input type="text" id="emailfield" name="email" placeholder="Enter Email"><br>
+<form action="/" method="post">
 
-    <label for="password">Password:</label><br>
-    <input type="password" id="passwordfield" name="password" placeholder="Enter password"><br>
-
-    <input type="submit" value="Submit">
+  <div class="container">
+    <label><b>Email &nbsp &nbsp &nbsp &nbsp</b></label>
+    <input type="text" placeholder="Enter Email" name="email" required>
+<br>
+    <label><b>Password</b></label>
+    <input type="password" placeholder="Enter Password" name="password" required>
+        <br>
+    <button type="submit">Login</button>
+  </div>
 </form>
-<a href="add_employee.html">Register</a>
+<button type="button"><a style="text-decoration: none; color:white"  href="/register">Register</a></button>
 
 </body>
 </html>
-
