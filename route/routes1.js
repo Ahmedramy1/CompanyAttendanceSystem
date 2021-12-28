@@ -2,36 +2,26 @@ const express = require("express");
 const empcontroller = require("../controller/employee.js");
 const path = require('path');
 const router = express.Router();
-
-//login.use(express.static('./view/', {index: 'login.html'}));
-
-router
-.route('/register')
-.get((req, res) => {
-    if(req.session.isAuth)
-        return res.redirect('/dashboard');
-    return res.sendFile(path.join(__dirname, '..', 'view/add_employee.html'));
-})
-
-
+// Register
 router
 .route('/add_emp')
 .post((req, res) => {
     empcontroller.AddEmployee(req, res);
 })
 
+// Login
 router
 .route('/')
 .get((req, res) => {
     if(req.session.isAuth)
     {
-        console.log("authed");
+        console.log("Authenticated");
         if(req.session.privilege == "HR")
         {return res.redirect('/hrdashboard');}
         else
         {return res.redirect('/dashboard');}
     }
-    console.log("not authed");
+    console.log("Not Authenticated");
     return res.sendFile(path.join(__dirname, '..', 'view/login.html'));
 })
 .post((req, res) => {
@@ -40,28 +30,21 @@ router
     empcontroller.userlogin(req, res);
 });
 
+// Generate Reports
 router
 .route('/generate')
 .get((req, res) => {
-    console.log("GENERATING");
     if(req.session.isAuth && req.session.privilege == "HR")
     {
         return empcontroller.GenerateReports(req, res);
     }
     else
     {
-        req.session.destroy((err) => 
-        {
-            try{}
-            catch(err)
-            {
-                console.log(err);
-            }
-        });
-        return res.redirect('/hrdashboard');
+        return res.redirect('/');
     }
 });
 
+// Employee dashboard
 router
 .route('/dashboard')
 .get((req, res) => {
@@ -73,6 +56,7 @@ router
     res.redirect('/');
 });
 
+// HR dashboard
 router
 .route('/hrdashboard')
 .get((req, res) => {
@@ -84,21 +68,41 @@ router
     res.redirect('/');
 });
 
+// Search for Employee by Email
+router
+.route('/search_emp')
+.post((req, res) => {
+    //console.log(req);
+    console.log("request");
+    if(req.session.privilege == "HR")
+    {
+        return empcontroller.SearchuserbyEmail(req, res);
+    }
+    res.redirect('/');
+})
+
+// Remove Employee
 router
 .route('/rem_employee')
-.delete((req, res) => {
-    console.log("REMOVING");
-    empcontroller.remEmp(req, res);
-    console.log("Removed Emp");
+.post((req, res) => {
+    if(req.session.privilege == "HR")
+    {
+        return empcontroller.rem_employee(req, res);
+    }
+    res.redirect('/');
 });
 
+// Logout
 router
 .route('/logout')
 .post((req, res) => {
-    console.log("Logging Out...");
-    empcontroller.userlogout(req, res);
+    if(req.session.isAuth)
+    {
+        console.log("Logging Out...");
+        return empcontroller.userlogout(req, res);
+    }
+    res.redirect('/');
 });
-
 
 module.exports = {
     router: router,

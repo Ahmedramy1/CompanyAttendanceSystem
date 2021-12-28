@@ -21,6 +21,7 @@ async function userlogin(req, res, next) {
         console.log("Logged in Successfully, directing to dashboard");
         req.session.isAuth = true;
         req.session.email = emp.email;
+        req.session.username = emp.username;
         req.session.privilege = emp.privilege;
         let att = {
             id: emp._id,
@@ -32,7 +33,6 @@ async function userlogin(req, res, next) {
             active: true,
         };
         const attend = new ATTENDANCE(att);
-        console.log("PRINTINGattendd");
         console.log(attend);
         req.session.attendance = attend;
         ClockIn(req, res); 
@@ -52,7 +52,6 @@ async function ClockIn(req, res, next) {
         if(req.session.privilege == "HR")
             return res.redirect('/hrdashboard');
         return res.redirect('/dashboard');
-        //res.send(emp);     
     }
     catch(err){
         console.log(err);
@@ -61,13 +60,14 @@ async function ClockIn(req, res, next) {
 
 async function AddEmployee(req, res, next) {
     try {
+        //hrrrr
         const emp = new EMP(req.body);
         console.log("Password before encryption");
         console.log(req.body.password);
         const hashpsw = await bcrypt.hash(req.body.password, 12);
         emp.password = hashpsw;
         await EMP.insertMany(emp);
-        res.sendFile(path.join(__dirname, '..', 'view/login.html'));     
+        res.redirect('/');     
     }
     catch(err){
         console.log(err);
@@ -78,42 +78,76 @@ async function AddEmployee(req, res, next) {
 async function GenerateReports(req, res, next) {
 
     const att = await ATTENDANCE.find();
-    console.log(att);    
-    return res.send(att);
+    let header = `<table style="width: 60%;"> 
+                    <tr> 
+                        <th>Name</th> 
+                        <th>Email</th> 
+                        <th>ClockIn</th>
+                        <th>ClockOut</th> 
+                        <th>Privilege</th>
+                        <th>Active</th>
+                    </tr>`;
+    att.forEach(row => {
+        header = header + `<tr> 
+                            <td>${row.username}</td> 
+                            <td>${row.email}</td> 
+                            <td>${(JSON.stringify(row.clockin)).substring(0, 20)}</td>
+                            <td>${(JSON.stringify(row.clockout)).substring(0, 20)}</td>
+                            <td>${row.privilege}</td>
+                            <td>${row.active}</td>
+                            </tr>`;
+    })
+    
+    return res.send(header);
 };
 
 async function rem_employee(req, res, next) {
-    await EMPLOYEE.remove({email: req.body.email})
-}
-async function SearchEmpbyusername(req, res, next) {
-    try
-    {
-        let empusername = req.params.usernamee;
-        var query = { username: empusername };
-        const emp = await EMPLOYEE.find(query);
-        console.log(emp);
-        if (emp != "")
-        {
-            res.send(emp);
-        }
-        if (emp == "")
-            res.send("No Results Found");
+    try{
+        console.log(req.body.usremail);
+        await EMP.deleteOne({email: req.body.usremail})
+        return res.send("Deleted");
     }
-    catch(err){
+    catch(err)
+    {
         console.log(err);
+        res.send("User does not exist");
     }
 }
 
-async function SearchEmpbyEmail(req, res, next) {
+async function SearchuserbyEmail(req, res, next) {
     try
     {
-        let empemail = req.params.email;
-        var query = { email: empemail };
-        const emp = await EMPLOYEE.find(query);
-        res.json(emp);
+        let usremail = req.body.usremail;
+        console.log(req.body);
+        var query = { email: usremail };
+        const emp = await EMP.findOne(query);
+        let user = {
+            username: emp.username,
+            email: emp.email,
+            age: emp.age,
+            phonenumber: emp.phonenumber,
+            privilege: emp.privilege
+        }
+        let header = `<table style="width: 30%;"> 
+        <tr> 
+            <th>Name</th> 
+            <th>Email</th> 
+            <th>Age</th>
+            <th>Phone Number</th> 
+            <th>Privilege</th>
+        </tr>
+        <td>${emp.username}</td>
+         <td>${emp.email}</td> 
+         <td>${emp.age}</td> 
+         <td>${emp.phonenumber}</td>
+         <td>${emp.privilege}</td>
+        </tr>`;
+        return res.send(header);
+
     }
     catch(err){
         console.log(err);
+        res.send("User does not exist");
     }
 }
 
@@ -163,8 +197,7 @@ async function ClockOut(req, res, next) {
 module.exports = {
     userlogin: userlogin,
     AddEmployee : AddEmployee,
-    SearchEmpbyusername : SearchEmpbyusername,
-    SearchEmpbyEmail : SearchEmpbyEmail,
+    SearchuserbyEmail : SearchuserbyEmail,
     ClockIn: ClockIn,
     rem_employee: rem_employee,
     GenerateReports: GenerateReports,
