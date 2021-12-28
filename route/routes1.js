@@ -8,8 +8,6 @@ const router = express.Router();
 router
 .route('/')
 .get((req, res) => {
-   // res.send("hello");
-    //console.log(req.session);
     console.log("Redirected to login");
     if(req.session.isAuth)
     {
@@ -19,7 +17,6 @@ router
         return res.redirect('/dashboard');
     }
     console.log("Not Authenticated");
-    //return res.sendFile(path.join(__dirname, '..', 'view/add_employee.html'));
     res.sendFile(path.join(__dirname, '..', 'view/login.html'));
 })
 .post((req, res) => {
@@ -86,7 +83,6 @@ router
 .route('/search_emp')
 .post((req, res) => {
     //console.log(req);
-    console.log("request");
     if(req.session.privilege == "HR")
     {
         return empcontroller.SearchuserbyEmail(req, res);
