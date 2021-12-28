@@ -11,8 +11,7 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
-
-const aaport = process.env.CPORT || 3000;
+const aaport = process.env.PORT || 3000;
 mongoose.connect(
   process.env.mongodb,
     { useNewUrlParser: true, useUnifiedTopology: true },
@@ -47,6 +46,6 @@ app.use('/rem_employee', require('./route/routes1').router);
 app.use('/search_emp', require('./route/routes1').router);
 app.use('/register', require('./route/routes1').router);
 
-app.listen(3000, () => {
+app.listen(aaport, () => {
     console.log(`Listening to port: ${aaport}`);
 });
