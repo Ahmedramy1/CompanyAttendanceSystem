@@ -13,8 +13,6 @@ async function userlogin(req, res, next) {
         if(!emp)
             return res.send("Email not found");
         const match = await bcrypt.compare(req.body.password, emp.password);
-        //if(emp.password != req.body.password)
-          //  return res.send("Incorrect Password");
         if(!match){
             return res.send("Incorrect Password");
         }

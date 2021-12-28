@@ -36,16 +36,6 @@ app.use(
   })
 );
 
-isAuth = (req, res, next) => {
-    //console.log(req.session.isAuth);
-    if (req.session.isAuth){
-        console.log("TRUEERRRE");
-        next();}
-    else {
-        console.log("FALSEEEEE");
-        res.redirect('/');}
-}
-
 app.use('/add_emp', require('./route/routes1').router);
 app.use('/', require('./route/routes1').router);
 app.use('/GenerateReports', require('./route/routes1').router);
