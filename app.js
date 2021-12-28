@@ -32,11 +32,11 @@ app.use(
     resave: false,
     saveUninitialized: false,
     store: store,
-    cookie: { httpOnly: true}
+    cookie: { httpOnly: true, maxAge: (12 * 3600000)} // maxAge: to destroy the session after 12 hours
   })
 );
 
-app.use('/add_emp', require('./route/routes1').router);
+
 app.use('/', require('./route/routes1').router);
 app.use('/GenerateReports', require('./route/routes1').router);
 app.use('/logout', require('./route/routes1').router);
@@ -44,6 +44,7 @@ app.use('/dashboard', require('./route/routes1').router);
 app.use('/hrdashboard', require('./route/routes1').router);
 app.use('/rem_employee', require('./route/routes1').router);
 app.use('/search_emp', require('./route/routes1').router);
+app.use('/register', require('./route/routes1').router);
 
 app.listen(3000, () => {
     console.log(`Listening to port: ${process.env.CPORT}`);

@@ -2,33 +2,46 @@ const express = require("express");
 const empcontroller = require("../controller/employee.js");
 const path = require('path');
 const router = express.Router();
-// Register
-router
-.route('/add_emp')
-.post((req, res) => {
-    empcontroller.AddEmployee(req, res);
-})
+
 
 // Login
 router
 .route('/')
 .get((req, res) => {
+   // res.send("hello");
+    //console.log(req.session);
+    console.log("Redirected to login");
     if(req.session.isAuth)
     {
         console.log("Authenticated");
         if(req.session.privilege == "HR")
         {return res.redirect('/hrdashboard');}
-        else
-        {return res.redirect('/dashboard');}
+        return res.redirect('/dashboard');
     }
     console.log("Not Authenticated");
-    return res.sendFile(path.join(__dirname, '..', 'view/login.html'));
+    //return res.sendFile(path.join(__dirname, '..', 'view/add_employee.html'));
+    res.sendFile(path.join(__dirname, '..', 'view/login.html'));
 })
 .post((req, res) => {
     console.log(req.body);
     console.log("Before Logging");
     empcontroller.userlogin(req, res);
 });
+
+// Register
+router
+.route('/register')
+.get((req, res) => {
+     if(req.session.isAuth)
+     {
+         return res.redirect('/');
+     }
+    res.sendFile(path.join(__dirname, '..', 'view/add_employee.html'));
+ })
+ .post((req, res) => {
+    empcontroller.AddEmployee(req, res);
+});
+
 
 // Generate Reports
 router
