@@ -20,7 +20,6 @@ router
     res.sendFile(path.join(__dirname, '..', 'view/login.html'));
 })
 .post((req, res) => {
-    console.log(req.body);
     console.log("Before Logging");
     empcontroller.userlogin(req, res);
 });
