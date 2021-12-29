@@ -2,13 +2,12 @@ const mongoose = require('mongoose');
 const EMP = require('../model/employee.js');
 const REQ = require('../model/requests.js');
 const ATTENDANCE = require('../model/attendance.js');
-const path = require('path');
 const bcrypt = require('bcryptjs');
 
 async function userlogin(req, res, next) {
     try
     {
-        console.log("Searching");
+        console.log(`Loggin in: ${req.body.email}`);
         var query = { email: req.body.email };
         const emp = await EMP.findOne(query);
         if(!emp)
@@ -64,7 +63,7 @@ async function ClockIn(req, res, next) {
 
 async function AddEmployee(req, res, next) {
     try {
-        //hrrrr
+        console.log(`Registering new email`);
         const emp = new EMP(req.body);
         console.log("Password before encryption");
         console.log(req.body.password);
@@ -80,6 +79,7 @@ async function AddEmployee(req, res, next) {
 }
 
 async function submitrequest(req, next) {
+    console.log(`Employee: ${req.session.email} Submitting Request`);
     console.log(req.session.requests);
     if(req.session.requests >= 1)
     {
@@ -104,6 +104,7 @@ async function submitrequest(req, next) {
 };
 
 async function viewmyreqs(req, res, next) {
+    console.log(`Employee: ${req.session.email} Viewing Requests`);
     var query = {email: req.session.email};
     const empreq = await REQ.find(query);
     let header = `<table style="width: 80%;"> 
@@ -134,7 +135,7 @@ async function viewmyreqs(req, res, next) {
 
 
 async function GenerateReports(req, res, next) {
-
+    console.log(`Generating Reports by ${req.session.email}`);
     const att = await ATTENDANCE.find();
     let header = `<table style="width: 60%;"> 
                     <tr> 
@@ -161,7 +162,7 @@ async function GenerateReports(req, res, next) {
 
 async function rem_employee(req, res, next) {
     try{
-        console.log(req.body.usremail);
+        console.log(`Removing Employee ${req.body.usremail} by ${req.session.email}`);
         query = {email: req.body.usremail};
         const emp = await EMP.findOne(query);
         if(!emp)
@@ -179,6 +180,7 @@ async function rem_employee(req, res, next) {
 async function SearchuserbyEmail(req, res, next) {
     try
     {
+        console.log(`Searching for Employee ${req.body.usremail} by ${req.session.email}`);
         let usremail = req.body.usremail;
         console.log(req.body);
         var query = { email: usremail };
@@ -214,6 +216,7 @@ async function SearchuserbyEmail(req, res, next) {
 }
 
 async function viewrequests(req, res, next) {
+    console.log(`Viewing Requests by ${req.session.email}`);
     const empreq = await REQ.find();
     let header = `<table style="width: 60%;"> 
         <tr> 
@@ -242,7 +245,7 @@ async function viewrequests(req, res, next) {
 }
 
 async function respondtorequest (req, res, next) {
-    console.log(`Responding to ${req.body.usremail}`);
+    console.log(`Responding to ${req.body.usremail} by ${req.session.email}`);
     try
     {
         var query = { email: req.body.usremail, Status: "Pending"};
@@ -271,6 +274,7 @@ async function respondtorequest (req, res, next) {
 async function userlogout(req, res, next) {
     try
     {
+        console.log(`Logging Out: ${req.session.email}`);
         req.session.attendance.clockout = new Date();
         req.session.attendance.active = false;
         ClockOut(req, res);
