@@ -162,7 +162,8 @@ async function GenerateReports(req, res, next) {
 async function rem_employee(req, res, next) {
     try{
         console.log(req.body.usremail);
-        emp = EMP.findOne(req.body.usremail);
+        query = {email: req.body.usremail};
+        const emp = await EMP.findOne(query);
         if(!emp)
             return res.send(`No email found for ${req.body.usremail}`);
         await EMP.deleteOne({email: req.body.usremail})
