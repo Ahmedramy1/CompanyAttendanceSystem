@@ -11,7 +11,17 @@
             </form>
             <form action="/search_emp" method="post"><li>
                 <input type="text" placeholder="Employee Email" name="usremail" required>
-                <button type="submit">Search for Employee by Email</button></li></form>
+                <button type="submit">Search for Employee by Email</button></li>
+            </form>
+            <form action="/respondtorequest" method="post"><li>
+                <input type="text" placeholder="Employee Email" name="usremail" required>
+                <select name="empreqresponse">
+                    <option value="Approved">Approve</option>
+                    <option value="Declined">Decline</option>
+                </select>
+                <button type="submit">Respond to Request</button></li>
+            </form>
+            <form action="/viewreqs" method="get"><li><button type="submit">View Requests</button></li></form>
             </ul>
             <form action="/logout" method="post">
                 <input type="submit" value="Log Out">

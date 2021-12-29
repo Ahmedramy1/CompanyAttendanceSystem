@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<style>label{font-family: sans-serif;}</style>
+<body>
+<h2>Submit Request</h2>
+
+<form action="/REQUEST" method="POST">
+    <label>Starts From:</label><br>
+    <input type="date" name="startsfrom" required><br>
+
+    <label>End date:</label><br>
+    <input type="date" name="enddate" required><br>
+
+    <select name="reqtype" id="reqtypeid">
+        <option value="Holiday">Holiday</option>
+        <option value="Emergency">Emergency</option>
+    </select>
+<br>
+    <textarea rows="4" cols="50" placeholder = "..." name="description" required></textarea>
+    <br>
+    <input type="submit" value="Submit">
+</form> 
+
+</body>
+</html>
+

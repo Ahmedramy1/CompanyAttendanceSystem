@@ -8,10 +8,9 @@ const router = express.Router();
 router
 .route('/')
 .get((req, res) => {
-    console.log("Redirected to login");
     if(req.session.isAuth)
     {
-        console.log("Authenticated");
+        console.log("Already Logged in");
         if(req.session.privilege == "HR")
         {return res.redirect('/hrdashboard');}
         return res.redirect('/dashboard');
@@ -22,6 +21,18 @@ router
 .post((req, res) => {
     console.log("Before Logging");
     empcontroller.userlogin(req, res);
+});
+
+// Logout
+router
+.route('/logout')
+.post((req, res) => {
+    if(req.session.isAuth)
+    {
+        console.log("Logging Out...");
+        return empcontroller.userlogout(req, res);
+    }
+    res.redirect('/');
 });
 
 // Register
@@ -37,6 +48,62 @@ router
  .post((req, res) => {
     empcontroller.AddEmployee(req, res);
 });
+
+
+// Employee Request
+router
+.route('/REQUEST')
+.get((req, res) => {
+    if(req.session.privilege == "Employee")
+    {
+        res.sendFile(path.join(__dirname, '..', 'view/emprequest.html'));
+    }
+    else {
+        res.redirect('/');
+    }
+})
+.post(async (req, res) => {
+    try{
+    if(req.session.privilege == "Employee")
+    {
+        console.log("Submitting Request");
+        let reqresponse = await empcontroller.submitrequest(req);
+        if(reqresponse == 1)
+        {
+            console.log(`Request Submitted for ${req.session.email}`);
+            req.session.requests = 1;
+        }
+        else{
+            console.log(`Reached limit of Request Submissions for ${req.session.email}`);
+            res.send(`Reached limit of Request Submissions for ${req.session.email}`);
+        }
+        res.redirect('dashboard');
+    }
+    else {
+        res.redirect('/');
+    }
+}
+catch(err)
+{
+    console.log("Error directing back");
+}
+});
+
+// Employee View Requests
+router
+.route('/viewmyreqs')
+.get((req, res) => {
+    if(req.session.privilege == "Employee")
+    {
+        empcontroller.viewmyreqs(req, res);
+    }
+    else
+    {
+        return res.redirect('/');
+    }
+})
+
+
 
 
 // Generate Reports
@@ -100,17 +167,38 @@ router
     res.redirect('/');
 });
 
-// Logout
+// Responding to request
 router
-.route('/logout')
-.post((req, res) => {
-    if(req.session.isAuth)
+.route('/respondtorequest')
+.post(async (req, res) => {
+    if(req.session.privilege == "HR")
     {
-        console.log("Logging Out...");
-        return empcontroller.userlogout(req, res);
+        let resp = await empcontroller.respondtorequest(req);
+        if(resp == -1)
+            return res.send(`Request not found for ${req.body.usremail}`);
+        else if(resp == 0)
+            return res.send(`Request is no longer available`);
+        return res.send(`Response submitted to ${req.body.usremail}`);
     }
     res.redirect('/');
+})
+
+
+// View Requests
+router
+.route('/viewreqs')
+.get((req, res) => {
+    if(req.session.isAuth && req.session.privilege == "HR")
+    {
+        return empcontroller.viewrequests(req, res);
+    }
+    else
+    {
+        return res.redirect('/');
+    }
 });
+
+
 
 module.exports = {
     router: router,

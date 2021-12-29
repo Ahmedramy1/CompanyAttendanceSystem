@@ -32,19 +32,26 @@ app.use(
     resave: false,
     saveUninitialized: false,
     store: store,
-    cookie: { httpOnly: true, maxAge: (12 * 3600000)} // maxAge: to destroy the session after 12 hours
+    cookie: { httpOnly: true, maxAge: (12 * 3600000)} //(12 * 3600000) maxAge: to destroy the session after 12 hours
   })
 );
 
 
 app.use('/', require('./route/routes1').router);
-app.use('/GenerateReports', require('./route/routes1').router);
 app.use('/logout', require('./route/routes1').router);
+app.use('/register', require('./route/routes1').router);
+//Employee
 app.use('/dashboard', require('./route/routes1').router);
+app.use('/viewmyreqs', require('./route/routes1').router);
+app.use('/REQUEST', require('./route/routes1').router);
+// HR
 app.use('/hrdashboard', require('./route/routes1').router);
+app.use('/GenerateReports', require('./route/routes1').router);
 app.use('/rem_employee', require('./route/routes1').router);
 app.use('/search_emp', require('./route/routes1').router);
-app.use('/register', require('./route/routes1').router);
+app.use('/respondtorequest', require('./route/routes1').router);
+app.use('/viewreqs', require('./route/routes1').router);
+
 
 app.listen(aaport, () => {
     console.log(`Listening to port: ${aaport}`);

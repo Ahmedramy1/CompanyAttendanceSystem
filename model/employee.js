@@ -32,6 +32,10 @@ const EmployeeSchema = new mongoose.Schema({
     privilege: {
         type: String,
         required: true
+    },
+    requests: {
+        type: Number,
+        default: 0
     }
 });
 

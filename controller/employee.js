@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const EMP = require('../model/employee.js');
+const REQ = require('../model/requests.js');
 const ATTENDANCE = require('../model/attendance.js');
 const path = require('path');
 const bcrypt = require('bcryptjs');
@@ -21,6 +22,11 @@ async function userlogin(req, res, next) {
         req.session.email = emp.email;
         req.session.username = emp.username;
         req.session.privilege = emp.privilege;
+        if(emp.privilege == "Employee")
+        {
+            req.session.requests = emp.requests;
+            console.log(`SESSION REQUESTS: ${req.session.requests}`);
+        }
         let att = {
             id: emp._id,
             username: emp.username,
@@ -72,6 +78,60 @@ async function AddEmployee(req, res, next) {
         res.sendStatus(404);
     }
 }
+
+async function submitrequest(req, next) {
+    console.log(req.session.requests);
+    if(req.session.requests >= 1)
+    {
+        return -1;
+    }
+    let empreq = {
+        username: req.session.username,
+        email: req.session.email,
+        privilege: req.session.privilege,
+        type: req.body.reqtype,
+        StartsFrom: req.body.startsfrom,
+        EndDate: req.body.enddate,
+        Description: req.body.description,
+    };
+    console.log("inserting request");
+    await REQ.insertMany(empreq);
+    var query = { email: req.session.email };
+    console.log("Updating Request for emp");
+    await EMP.updateOne(query, {$set: {requests: 1}});
+    req.session.requests = 1;
+    return 1;
+};
+
+async function viewmyreqs(req, res, next) {
+    var query = {email: req.session.email};
+    const empreq = await REQ.find(query);
+    let header = `<table style="width: 80%;"> 
+        <tr> 
+            <th>Name</th> 
+            <th>Email</th> 
+            <th>Privilege</th>
+            <th>Type</th> 
+            <th>Starts</th>
+            <th>Ends</th>
+            <th>Status</th>
+            <th>Description</th>
+        </tr>`;
+
+        empreq.forEach(row => {
+         header = header + `<td>${row.username}</td>
+         <td>${row.email}</td> 
+         <td>${row.privilege}</td> 
+         <td>${row.type}</td>
+         <td>${(JSON.stringify(row.StartsFrom)).substring(1, 11)}</td>
+         <td>${(JSON.stringify(row.EndDate)).substring(1, 11)}</td>
+         <td>${row.Status}</td>
+         <td>${row.Description}</td>
+        </tr>`
+        });
+        return res.send(header);
+}
+
 
 async function GenerateReports(req, res, next) {
 
@@ -149,6 +209,61 @@ async function SearchuserbyEmail(req, res, next) {
     }
 }
 
+async function viewrequests(req, res, next) {
+    const empreq = await REQ.find();
+    let header = `<table style="width: 60%;"> 
+        <tr> 
+            <th>Name</th> 
+            <th>Email</th> 
+            <th>Privilege</th>
+            <th>Type</th> 
+            <th>Starts</th>
+            <th>Ends</th>
+            <th>Status</th>
+            <th>Description</th>
+        </tr>`;
+
+        empreq.forEach(row => {
+         header = header + `<td>${row.username}</td>
+         <td>${row.email}</td> 
+         <td>${row.privilege}</td> 
+         <td>${row.type}</td>
+         <td>${(JSON.stringify(row.StartsFrom)).substring(1, 11)}</td>
+         <td>${(JSON.stringify(row.EndDate)).substring(1, 11)}</td>
+         <td>${row.Status}</td>
+         <td>${row.Description}</td>
+        </tr>`
+        });
+        return res.send(header);
+}
+
+async function respondtorequest (req, res, next) {
+    console.log(`Responding to ${req.body.usremail}`);
+    try
+    {
+        var query = { email: req.body.usremail, Status: "Pending"};
+        empreq = await REQ.findOne(query);
+        if(!empreq)
+        {
+            console.log(`Request not found for ${req.body.usremail}`)
+            return -1;
+        }
+        if(empreq.Status != "Pending")
+        {
+            console.log(`Request is no longer available`);
+            return 0;
+        }
+        await EMP.updateOne(query, {$set: {requests: 0}});
+        await REQ.updateOne(query, {$set: {Status: req.body.empreqresponse}});
+        return 1;
+        
+    }
+    catch(err)
+    {
+        console.log(err);
+    }
+}
+
 async function userlogout(req, res, next) {
     try
     {
@@ -195,10 +310,14 @@ async function ClockOut(req, res, next) {
 module.exports = {
     userlogin: userlogin,
     AddEmployee : AddEmployee,
+    submitrequest: submitrequest,
     SearchuserbyEmail : SearchuserbyEmail,
     ClockIn: ClockIn,
+    viewmyreqs: viewmyreqs,
     rem_employee: rem_employee,
     GenerateReports: GenerateReports,
+    respondtorequest: respondtorequest,
+    viewrequests: viewrequests,
     userlogout: userlogout,
     ClockOut: ClockOut,
 
