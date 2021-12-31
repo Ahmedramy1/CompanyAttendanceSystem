@@ -150,8 +150,8 @@ async function GenerateReports(req, res, next) {
         header = header + `<tr> 
                             <td>${row.username}</td> 
                             <td>${row.email}</td> 
-                            <td>${(JSON.stringify(row.clockin)).substring(1, 20)}</td>
-                            <td>${(JSON.stringify(row.clockout)).substring(1, 20)}</td>
+                            <td>${(JSON.stringify(row.clockin)).substring(0, 20)}</td>
+                            <td>${(JSON.stringify(row.clockout)).substring(0, 20)}</td>
                             <td>${row.privilege}</td>
                             <td>${row.active}</td>
                             </tr>`;
